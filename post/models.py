@@ -3,6 +3,8 @@ from django.utils import timezone
 import sys 
 from io import BytesIO 
 from PIL import Image
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.template.defaultfilters import slugify
 
 CHOICES = (
         ('ENTERTAINMENT', 'Entertainment'),
@@ -18,14 +20,16 @@ CHOICES = (
     )
 
 class BlogPost(models.Model):
-    title = models.CharField(max_length=30)
+    title = models.CharField(max_length=350)
     content = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='post/images', blank=True, null=True)
     section = models.CharField(max_length=200, choices=CHOICES)
+    slug = models.SlugField(max_length=500)
     posted = models.DateTimeField(auto_now_add=True)
     video = models.FileField(upload_to='post/videos', blank=True, null=True)
 
     def save(self, *args, **kwargs):
+        self.slug = slugify(self.title) + f'-{self.pk}' 
         if self.image:
             # Opening the uploaded image
             im = Image.open(self.image)

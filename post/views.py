@@ -1,16 +1,37 @@
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.generics import CreateAPIView, ListAPIView
-from .serializers import (CreateBlogPostSerializer, BlogPostsListSerializer)
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from .serializers import (CreateBlogPostSerializer, 
+BlogPostsListSerializer, BlogPostsDetailSerializer, InPostImagesSerializer)
 from rest_framework.parsers import FileUploadParser
 from .models import BlogPost
+from rest_framework.pagination import PageNumberPagination
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_control
+from django.views.decorators.vary import vary_on_cookie
+
+
+class PageNumberPaginationWithCount(PageNumberPagination):
+    
+    def get_paginated_response(self, data):
+        response = super(PageNumberPaginationWithCount, self).get_paginated_response(data)
+        response.data['total_pages'] = self.page.paginator.num_pages
+        response.data['current'] = self.page.number
+        response.data['prev_page_number'] = None
+        response.data['next_page_number'] = None
+        if self.page.has_previous():
+            response.data['prev_page_number'] = self.page.previous_page_number()
+        if self.page.has_next():
+            response.data['next_page_number'] = self.page.next_page_number()
+        # response['headers']['Cache-Control'] = 'no-cache, max-age=10400'
+        return response
 
 class CreateBlogPostView(CreateAPIView):
     parser_class = (FileUploadParser,)
 
     def post(self, request, *args, **kwargs):
-        print(request.data)
         serializer = CreateBlogPostSerializer(data=request.data)
 
         if serializer.is_valid(raise_exception=True):
@@ -23,44 +44,76 @@ class CreateBlogPostView(CreateAPIView):
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 class ListBlogPostsView(ListAPIView):
-
+    
+    # @method_decorator(cache_control(no_cache=True), name='dispatch')
+    @method_decorator(cache_page(60*60*60*4))
+    @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
-        posts = BlogPost.objects.filter(section=request.query_params['section'])
+        paginator = PageNumberPaginationWithCount()
+        paginator.page_size = 8
+        if request.query_params['section'] == 'VIDEOS':
+            posts = BlogPost.objects.exclude(video='').order_by('-posted')
+        else:
+            posts = BlogPost.objects.filter(section=request.query_params['section']).order_by('-posted')
+        result_page = paginator.paginate_queryset(posts, request)
         latest_post = BlogPost.objects.last()
 
-        serializer = BlogPostsListSerializer(posts, many=True)
+        serializer = BlogPostsListSerializer(result_page, many=True)
         latest_post_serializer = BlogPostsListSerializer(latest_post, many=False)
-        return Response(
-            {
-                'latest':latest_post_serializer.data,
-                'posts': serializer.data
-            }, status=status.HTTP_200_OK)
+        data = paginator.get_paginated_response(serializer.data)
+        return data
 
 
 class HomePageView(ListAPIView):
 
+    @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
         latest_post = BlogPost.objects.last()
         enterntainment_posts = BlogPost.objects.filter(section='ENTERTAINMENT').order_by('-posted')[:3]
-        fashion_posts = BlogPost.objects.filter(section='FASHION').order_by('-posted')[:3]
-        news_posts = BlogPost.objects.filter(section='NEWS').order_by('-posted')[:3]
-        crime_posts = BlogPost.objects.filter(section='CRIME').order_by('-posted')[:3]
-        headlines = BlogPost.objects.filter(section='CRIME').order_by('-posted')[1:4]
+        business_posts = BlogPost.objects.filter(section='BUSINESS').order_by('-posted')[:3]
+        politics_posts = BlogPost.objects.filter(section='POLITICS').order_by('-posted')[:3]
+        humanity_posts = BlogPost.objects.filter(section='HUMANITY').order_by('-posted')[:3]
+        headlines = BlogPost.objects.order_by('-posted')[1:4]
 
         latest_serializer = BlogPostsListSerializer(latest_post, many=False)
-        headines_serializer = BlogPostsListSerializer(headlines, many=False)
+        headlines_serializer = BlogPostsListSerializer(headlines, many=True)
         entertainment_serializer = BlogPostsListSerializer(enterntainment_posts, many=True)
-        fashion_serializer = BlogPostsListSerializer(fashion_posts, many=True)
-        news_serializer = BlogPostsListSerializer(news_posts, many=True)
-        crime_serializer = BlogPostsListSerializer(crime_posts, many=True)
+        business_serializer = BlogPostsListSerializer(business_posts, many=True)
+        politics_serializer = BlogPostsListSerializer(politics_posts, many=True)
+        humanity_serializer = BlogPostsListSerializer(humanity_posts, many=True)
 
         data = {
-            'latest':latest_serializer.data(),
-            'headlines': headines_serializer.data(),
-            'entertainment':entertainment_serializer.data(),
-            'fashion':fashion_serializer.data(),
-            'news':news_serializer.data(),
-            'crime':crime_serializer.data()
+            'latest':latest_serializer.data,
+            'headlines': headlines_serializer.data,
+            'entertainment':entertainment_serializer.data,
+            'business':business_serializer.data,
+            'politics':politics_serializer.data,
+            'humanity':humanity_serializer.data
         }
 
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(data, status=status.HTTP_200_OK, headers={'Cache-Control':'no-cache'})
+
+
+# class StoreInPostImages(CreateAPIView):
+#     parser_class = (FileUploadParser,)
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = InPostImagesSerializer(data=request.data)
+#         if serializer.is_valid(raise_exception=True):
+#             obj = serializer.save()
+#             data = {'url': obj.upload.url}
+#             return Response(data, status=status.HTTP_201_CREATED)
+
+class BlogPostDetailView(ListAPIView):
+
+    # @method_decorator(cache_page(60*60*60*4))
+    @method_decorator(vary_on_cookie)
+    def list(self, request, *args, **kwargs):
+        slug = request.query_params['slug']
+        try:
+            post = BlogPost.objects.get(slug=slug)
+        except BlogPost.DoesNotExist:
+            return Response({'message':'POST_NOT_FOUND'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = BlogPostsDetailSerializer(post, many=False)
+
+        return Response(serializer.data, status=status.HTTP_200_OK, headers={'Cache-Control':'no-cache'})

@@ -5,18 +5,25 @@ from io import BytesIO
 from PIL import Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.template.defaultfilters import slugify
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+
+
 
 CHOICES = (
         ('ENTERTAINMENT', 'Entertainment'),
-        ('FASHION', 'Fashion'),
+        ('ENVIRONMENT', 'Environment'),
         ('BUSINESS', 'Business'),
         ('WOMEN', 'Women'),
-        ('NEWS', 'News'),
-        ('FEATURES', 'Features'),
+        ('SPORTS', 'Sports'),
         ('HUMANITY', 'Humanity'),
-        ('WILDLIFE', 'Wildlife'),
-        ('CRIME', 'Crime'),
-        ('POLITICS', 'Politics')
+        ('RESEARCH', 'Research'),
+        ('PERSONAL', 'Personal'),
+        ('INTERVIEWS', 'Interviews'),
+        ('POLITICS', 'Politics'),
+        ('TECHNOLOGY', 'Technology')
     )
 
 class BlogPost(models.Model):
@@ -29,7 +36,7 @@ class BlogPost(models.Model):
     video = models.FileField(upload_to='post/videos', blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.title) + f'-{self.pk}' 
+        self.slug = slugify(self.title)
         if self.image:
             # Opening the uploaded image
             im = Image.open(self.image)
@@ -37,10 +44,10 @@ class BlogPost(models.Model):
             output = BytesIO()
 
             # Resize/modify the image
-            im = im.resize((300, 300))
+            im = im.resize((500, 500))
 
             # after modifications, save it to the output
-            im.save(output, format='PNG', quality=90)
+            im.save(output, format='PNG', quality=95)
             output.seek(0)
 
             # change the imagefield value to be the newley modifed image value
@@ -48,3 +55,39 @@ class BlogPost(models.Model):
                                             sys.getsizeof(output), None)
 
         super(BlogPost, self).save(*args, **kwargs)
+
+
+class InPostImages(models.Model):
+    upload = models.ImageField(upload_to='in-post/images', blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.upload:
+            # Opening the uploaded image
+            im = Image.open(self.upload)
+
+            output = BytesIO()
+
+            # Resize/modify the image
+            im = im.resize((250, 250))
+
+            # after modifications, save it to the output
+            im.save(output, format='PNG', quality=98)
+            output.seek(0)
+
+            # change the imagefield value to be the newley modifed image value
+            self.upload = InMemoryUploadedFile(output, 'ImageField', "%s.png" % self.upload.name.split('.')[0], 'image/png',
+                                            sys.getsizeof(output), None)
+
+        super(InPostImages, self).save(*args, **kwargs)
+
+
+@receiver(post_save, sender=BlogPost)
+def edit_slug(sender, instance, created, **kwargs):
+    if created:
+        temp = instance.slug
+        blog_post = BlogPost.objects.filter(id=instance.id).update(slug= temp + '-' + str(instance.id))
+
+@receiver(post_save, sender=User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)

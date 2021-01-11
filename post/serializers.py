@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import (BlogPost)
+from .models import (BlogPost, InPostImages)
 
 class CreateBlogPostSerializer(serializers.ModelSerializer):
 
@@ -24,6 +24,19 @@ class CreateBlogPostSerializer(serializers.ModelSerializer):
 
 
 class BlogPostsListSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = BlogPost
+        exclude = ['content']
+
+
+class InPostImagesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = InPostImages
+        fields = '__all__'
+
+class BlogPostsDetailSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = BlogPost

@@ -80,11 +80,10 @@ TEMPLATES = [
     },
 ]
 
+DEBUG = config('DEBUG', default=False, cast=bool)
 WSGI_APPLICATION = 'blog.wsgi.application'
 
-DEBUG = config('DEBUG', default=False, cast=bool)
-
-if DEBUG:
+if DEBUG=='TRUE':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

@@ -23,7 +23,8 @@ CHOICES = (
         ('PERSONAL', 'Personal'),
         ('INTERVIEWS', 'Interviews'),
         ('POLITICS', 'Politics'),
-        ('TECHNOLOGY', 'Technology')
+        ('TECHNOLOGY', 'Technology'),
+        ('NEWS', 'news')
     )
 
 class BlogPost(models.Model):

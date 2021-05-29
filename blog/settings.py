@@ -16,6 +16,7 @@ from decouple import config
 import dj_database_url
 from corsheaders.defaults import default_headers
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,6 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
+
 
 
 ALLOWED_HOSTS = ['*']
@@ -83,19 +85,19 @@ TEMPLATES = [
 DEBUG = config('DEBUG', default=False, cast=bool)
 WSGI_APPLICATION = 'blog.wsgi.application'
 
-if DEBUG=="TRUE":
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+# if DEBUG=="TRUE":
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    DATABASES = {
-        'default':dj_database_url.config(
-            default=config('DATABASE_URL')
-        )
-    }
+}
+# else:
+#     DATABASES = {
+#         'default':dj_database_url.config(
+#             default=config('DATABASE_URL')
+#         )
+#     }
 
 
 # Password validation

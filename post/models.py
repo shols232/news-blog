@@ -50,10 +50,10 @@ class BlogPost(models.Model):
             output = BytesIO()
 
             # Resize/modify the image
-            im = im.resize((500, 500))
+            im = im.resize((800, 800))
 
             # after modifications, save it to the output
-            im.save(output, format='PNG', quality=95)
+            im.save(output, format='PNG', quality=98)
             output.seek(0)
 
             # change the imagefield value to be the newley modifed image value

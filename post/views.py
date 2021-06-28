@@ -114,7 +114,7 @@ class ContactView(APIView):
             email_from = data.get('email')
             subject = data.get('subject')
             message = data.get('message')
-            send_mail(subject, message, email_from,['akinsolaademolatemitope@gmail.com'],)
+            send_mail(subject, message, email_from)
             return Response({"success": "Sent"})
         return Response({'success': "Failed"}, status=status.HTTP_400_BAD_REQUEST)
 

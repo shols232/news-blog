@@ -2,8 +2,11 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.views import APIView
+from django.core.mail import send_mail
 from .serializers import (CreateBlogPostSerializer, 
-BlogPostsListSerializer, BlogPostsDetailSerializer, InPostImagesSerializer)
+BlogPostsListSerializer, BlogPostsDetailSerializer, InPostImagesSerializer,
+ContactSerailizer)
 from rest_framework.parsers import FileUploadParser
 from .models import BlogPost
 from rest_framework.pagination import PageNumberPagination
@@ -45,7 +48,6 @@ class CreateBlogPostView(CreateAPIView):
 
 class ListBlogPostsView(ListAPIView):
     
-    # @method_decorator(cache_control(no_cache=True), name='dispatch')
     @method_decorator(cache_page(60*60*60*4))
     @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
@@ -70,25 +72,25 @@ class HomePageView(ListAPIView):
     def list(self, request, *args, **kwargs):
         latest_post = BlogPost.objects.last()
         enterntainment_posts = BlogPost.objects.filter(section='ENTERTAINMENT').order_by('-posted')[:3]
-        business_posts = BlogPost.objects.filter(section='BUSINESS').order_by('-posted')[:3]
+        crime_posts = BlogPost.objects.filter(section='CRIME').order_by('-posted')[:3]
         politics_posts = BlogPost.objects.filter(section='POLITICS').order_by('-posted')[:3]
-        humanity_posts = BlogPost.objects.filter(section='HUMANITY').order_by('-posted')[:3]
+        romance_posts = BlogPost.objects.filter(section='ROMANCE').order_by('-posted')[:3]
         headlines = BlogPost.objects.order_by('-posted')[1:4]
 
         latest_serializer = BlogPostsListSerializer(latest_post, many=False)
         headlines_serializer = BlogPostsListSerializer(headlines, many=True)
         entertainment_serializer = BlogPostsListSerializer(enterntainment_posts, many=True)
-        business_serializer = BlogPostsListSerializer(business_posts, many=True)
+        crime_serializer = BlogPostsListSerializer(crime_posts, many=True)
         politics_serializer = BlogPostsListSerializer(politics_posts, many=True)
-        humanity_serializer = BlogPostsListSerializer(humanity_posts, many=True)
+        romance_serializer = BlogPostsListSerializer(romance_posts, many=True)
 
         data = {
             'latest':latest_serializer.data,
             'headlines': headlines_serializer.data,
             'entertainment':entertainment_serializer.data,
-            'business':business_serializer.data,
+            'business':crime_serializer.data,
             'politics':politics_serializer.data,
-            'humanity':humanity_serializer.data
+            'romance':romance_serializer.data
         }
 
         return Response(data, status=status.HTTP_200_OK, headers={'Cache-Control':'no-cache'})
@@ -103,6 +105,20 @@ class HomePageView(ListAPIView):
 #             obj = serializer.save()
 #             data = {'url': obj.upload.url}
 #             return Response(data, status=status.HTTP_201_CREATED)
+
+class ContactView(APIView):
+    def post(self, request, *args, **kwargs):
+         serailizer_class = ContactSerailizer(data=request.data)
+         if serailizer_class.is_valid():
+             data = serailizer_class.validated_data
+             email_from = data.get('email')
+             subject = data.get('subject')
+             message = data.get('message')
+             send_mail(subject, message, email_from,['akinsolaademolatemitope@gmail.com'],)
+
+         return Response({"success": "Sent"})
+         return Response({'success': "Failed"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class BlogPostDetailView(ListAPIView):
 

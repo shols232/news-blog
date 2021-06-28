@@ -86,18 +86,20 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 WSGI_APPLICATION = 'blog.wsgi.application'
 
 # if DEBUG=="TRUE":
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-# else:
 DATABASES = {
-    'default':dj_database_url.config(
-        default=config('DATABASE_URL')
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
+
+# else:
+# DATABASES = {
+#     'default':dj_database_url.config(
+#         default=config('DATABASE_URL')
+#     )
+# }
 
 
 # Password validation
@@ -166,3 +168,9 @@ AWS_QUERYSTRING_AUTH = False
 AWS_DEFAULT_ACL = None
 
 AWS_S3_REGION_NAME = 'us-east-2'
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')

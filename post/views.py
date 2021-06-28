@@ -108,16 +108,15 @@ class HomePageView(ListAPIView):
 
 class ContactView(APIView):
     def post(self, request, *args, **kwargs):
-         serailizer_class = ContactSerailizer(data=request.data)
-         if serailizer_class.is_valid():
-             data = serailizer_class.validated_data
-             email_from = data.get('email')
-             subject = data.get('subject')
-             message = data.get('message')
-             send_mail(subject, message, email_from,['akinsolaademolatemitope@gmail.com'],)
-
-         return Response({"success": "Sent"})
-         return Response({'success': "Failed"}, status=status.HTTP_400_BAD_REQUEST)
+        serailizer_class = ContactSerailizer(data=request.data)
+        if serailizer_class.is_valid(raise_exception=True):
+            data = serailizer_class.validated_data
+            email_from = data.get('email')
+            subject = data.get('subject')
+            message = data.get('message')
+            send_mail(subject, message, email_from,['akinsolaademolatemitope@gmail.com'],)
+            return Response({"success": "Sent"})
+        return Response({'success': "Failed"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BlogPostDetailView(ListAPIView):

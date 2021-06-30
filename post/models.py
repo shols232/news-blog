@@ -29,7 +29,8 @@ CHOICES = (
         ('CRIME', 'Crime'),
         ('ROMANCE', 'Romance'),
         ('NEWS', 'news'),
-        ('SDGS', 'SDGs')
+        ('SDGS', 'SDGs'),
+        # ('HEALTH', 'Health')
     )
 
 class BlogPost(models.Model):

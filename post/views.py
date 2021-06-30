@@ -7,6 +7,7 @@ from django.core.mail import send_mail
 from .serializers import (CreateBlogPostSerializer, 
 BlogPostsListSerializer, BlogPostsDetailSerializer, InPostImagesSerializer,
 ContactSerailizer)
+from django.conf import settings
 from rest_framework.parsers import FileUploadParser
 from .models import BlogPost
 from rest_framework.pagination import PageNumberPagination
@@ -114,7 +115,7 @@ class ContactView(APIView):
             email_from = data.get('email')
             subject = data.get('subject')
             message = data.get('message')
-            send_mail(subject, message, email_from)
+            send_mail(subject, message, email_from, [settings.EMAIL_HOST_USER, ])
             return Response({"success": "Sent"})
         return Response({'success': "Failed"}, status=status.HTTP_400_BAD_REQUEST)
 

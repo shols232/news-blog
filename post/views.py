@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
-from django.core.mail import send_mail
+from django.core.mail import send_mail, BadHeaderError
 from .serializers import (CreateBlogPostSerializer, 
 BlogPostsListSerializer, BlogPostsDetailSerializer, InPostImagesSerializer,
 ContactSerailizer)
@@ -117,7 +117,10 @@ class ContactView(APIView):
             subject = data.get('subject')
             message = data.get('message')
             formatted_message = "Name: {name}\nEmail: {email}\nMessage: {message}".format(name, email_from, message)
-            send_mail(subject, formatted_message, email_from, [settings.EMAIL_HOST_USER, ])
+            try:
+                send_mail(subject, formatted_message, email_from, [settings.EMAIL_HOST_USER, ])
+            except BadHeaderError:
+                return Response({"success":"Invalid header found."})
             return Response({"success": "Sent"})
         return Response({'success': "Failed"}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -116,7 +116,7 @@ class ContactView(APIView):
             name = data.get('name')
             subject = data.get('subject')
             message = data.get('message')
-            formatted_message = "Name: %d\nEmail: %d\nMessage: %d".format(name, email_from, message)
+            formatted_message = "Name: {name}\nEmail: {email}\nMessage: {message}".format(name, email_from, message)
             send_mail(subject, formatted_message, email_from, [settings.EMAIL_HOST_USER, ])
             return Response({"success": "Sent"})
         return Response({'success': "Failed"}, status=status.HTTP_400_BAD_REQUEST)

@@ -113,9 +113,11 @@ class ContactView(APIView):
         if serailizer_class.is_valid(raise_exception=True):
             data = serailizer_class.validated_data
             email_from = data.get('email')
+            name = data.get('name')
             subject = data.get('subject')
             message = data.get('message')
-            send_mail(subject, message, email_from, [settings.EMAIL_HOST_USER, ])
+            formatted_message = "Name: %d\nEmail: %d\nMessage: %d".format(name, email_from, message)
+            send_mail(subject, formatted_message, email_from, [settings.EMAIL_HOST_USER, ])
             return Response({"success": "Sent"})
         return Response({'success': "Failed"}, status=status.HTTP_400_BAD_REQUEST)
 

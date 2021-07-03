@@ -89,7 +89,7 @@ class HomePageView(ListAPIView):
             'latest':latest_serializer.data,
             'headlines': headlines_serializer.data,
             'entertainment':entertainment_serializer.data,
-            'business':crime_serializer.data,
+            'crime':crime_serializer.data,
             'politics':politics_serializer.data,
             'romance':romance_serializer.data
         }

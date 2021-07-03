@@ -94,7 +94,7 @@ class HomePageView(ListAPIView):
             'romance':romance_serializer.data
         }
 
-        return Response(data, status=status.HTTP_200_OK, headers={'Cache-Control':'no-cache'})
+        return Response(data, status=status.HTTP_200_OK, headers={'Cache-Control':'s-maxage=3,stale-while-revalidate'})
 
 
 # class StoreInPostImages(CreateAPIView):

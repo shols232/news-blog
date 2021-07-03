@@ -116,7 +116,7 @@ class ContactView(APIView):
             name = data.get('name')
             subject = data.get('subject')
             message = data.get('message')
-            formatted_message = "Name: {name}\nEmail: {email}\nMessage: {message}".format(name, email_from, message)
+            formatted_message = "Name: {name}\nEmail: {email}\nMessage: {message}".format(name=name, email=email_from, message=message)
             try:
                 send_mail(subject, formatted_message, email_from, [settings.EMAIL_HOST_USER, ])
             except BadHeaderError:

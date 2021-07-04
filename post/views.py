@@ -49,7 +49,7 @@ class CreateBlogPostView(CreateAPIView):
 
 class ListBlogPostsView(ListAPIView):
     
-    @method_decorator(cache_page(60*60*4))
+    @method_decorator(cache_page(60*5))
     @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
         paginator = PageNumberPaginationWithCount()
@@ -127,7 +127,6 @@ class ContactView(APIView):
 
 class BlogPostDetailView(ListAPIView):
 
-    @method_decorator(cache_page(60*60*300))
     @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
         slug = request.query_params['slug']

@@ -49,8 +49,6 @@ class CreateBlogPostView(CreateAPIView):
 
 class ListBlogPostsView(ListAPIView):
     
-    @method_decorator(cache_page(60*5))
-    @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
         paginator = PageNumberPaginationWithCount()
         paginator.page_size = 8

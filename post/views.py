@@ -56,6 +56,7 @@ class ListBlogPostsView(ListAPIView):
             posts = BlogPost.objects.exclude(video='').order_by('-posted')
         else:
             posts = BlogPost.objects.filter(section=request.query_params['section']).order_by('-posted')
+        
         result_page = paginator.paginate_queryset(posts, request)
         latest_post = BlogPost.objects.last()
 
@@ -67,7 +68,6 @@ class ListBlogPostsView(ListAPIView):
 
 class HomePageView(ListAPIView):
 
-    @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
         latest_post = BlogPost.objects.last()
         enterntainment_posts = BlogPost.objects.filter(section='ENTERTAINMENT').order_by('-posted')[:3]
